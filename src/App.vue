@@ -393,10 +393,10 @@ const previousExp = experience.filter(e => !e.featured)
 </script>
 
 <template>
-  <div ref="cvContainer" id="cv-root" class="bg-background text-on-background font-body h-screen w-full overflow-hidden flex flex-col selection:bg-primary-container selection:text-on-primary-container">
+  <div ref="cvContainer" id="cv-root" class="bg-background text-on-background font-body min-h-screen lg:h-screen w-full lg:overflow-hidden flex flex-col selection:bg-primary-container selection:text-on-primary-container">
 
     <!-- Header -->
-    <header class="flex items-center justify-between px-8 py-5 border-b border-outline-variant/60 shrink-0 bg-surface-bright z-10">
+    <header class="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5 border-b border-outline-variant/60 shrink-0 bg-surface-bright z-10 sticky top-0 lg:static">
       <div class="flex items-center gap-3">
         <div class="size-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-headline text-lg italic">
           {{ profile.initials }}
@@ -406,9 +406,9 @@ const previousExp = experience.filter(e => !e.featured)
         </h1>
       </div>
 
-      <nav class="flex items-center gap-8">
-        <a href="#experience" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navExperience) }}</a>
-        <a href="#skills"     class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navSkills) }}</a>
+      <nav class="flex items-center gap-3 sm:gap-6 lg:gap-8">
+        <a href="#experience" class="hidden md:inline-block text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navExperience) }}</a>
+        <a href="#skills"     class="hidden md:inline-block text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navSkills) }}</a>
 
         <!-- Language toggle -->
         <button
@@ -434,13 +434,13 @@ const previousExp = experience.filter(e => !e.featured)
     </header>
 
     <!-- Bento Grid -->
-    <main class="flex-1 min-h-0 p-8 flex gap-8 overflow-hidden">
+    <main class="flex-1 min-h-0 p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 lg:gap-8 lg:overflow-hidden">
 
       <!-- Left column: portrait + bio (sticky) -->
-      <div class="w-1/3 flex flex-col gap-6 h-full">
+      <div class="w-full lg:w-1/3 flex flex-col gap-6 lg:h-full shrink-0">
 
         <!-- Portrait card -->
-        <div class="flex-1 bg-surface-container-lowest rounded-xl border border-outline-variant/60 sahara-shadow overflow-hidden flex flex-col relative group">
+        <div class="flex-1 min-h-[60vw] sm:min-h-[420px] lg:min-h-0 bg-surface-container-lowest rounded-xl border border-outline-variant/60 sahara-shadow overflow-hidden flex flex-col relative group">
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent z-10"></div>
           <!-- Photo: drop your image as public/photo.jpg -->
           <div
@@ -451,8 +451,8 @@ const previousExp = experience.filter(e => !e.featured)
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span class="font-headline text-8xl text-outline-variant/40 select-none">{{ profile.initials }}</span>
           </div>
-          <div class="mt-auto p-8 relative z-20">
-            <h2 class="font-headline text-5xl text-white font-medium leading-tight tracking-tight">
+          <div class="mt-auto p-6 sm:p-8 relative z-20">
+            <h2 class="font-headline text-4xl sm:text-5xl text-white font-medium leading-tight tracking-tight">
               {{ t(profile.heroLine)[0] }}<br/>
               <span class="italic text-primary-fixed">{{ t(profile.heroLine)[1] }}</span>
             </h2>
@@ -526,14 +526,14 @@ const previousExp = experience.filter(e => !e.featured)
       </div>
 
       <!-- Right column: scrollable -->
-      <div class="w-2/3 flex flex-col gap-6 h-full overflow-y-auto pr-1" id="experience">
+      <div class="w-full lg:w-2/3 flex flex-col gap-6 lg:h-full lg:overflow-y-auto lg:pr-1" id="experience">
 
         <!-- Experience grid -->
-        <div class="grid grid-cols-2 gap-6 shrink-0">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 shrink-0">
           <div
             v-for="item in featuredExp"
             :key="item.period"
-            class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/60 sahara-shadow flex flex-col relative overflow-hidden group"
+            class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 border border-outline-variant/60 sahara-shadow flex flex-col relative overflow-hidden group"
           >
             <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 transition-transform group-hover:scale-110 pointer-events-none">
               <span class="material-symbols-outlined text-[120px]">{{ item.bgIcon }}</span>
@@ -544,14 +544,14 @@ const previousExp = experience.filter(e => !e.featured)
               </div>
               <div class="text-sm font-medium text-tertiary tracking-widest uppercase">{{ item.period }}</div>
             </div>
-            <h3 class="font-headline text-3xl text-on-surface mb-2">{{ t(item.role) }}</h3>
+            <h3 class="font-headline text-2xl sm:text-3xl text-on-surface mb-2">{{ t(item.role) }}</h3>
             <h4 class="text-on-surface-variant font-medium text-lg mb-4">{{ t(item.company) }}</h4>
             <p class="text-on-surface-variant text-sm leading-relaxed mt-auto max-w-[85%]">{{ t(item.desc) }}</p>
           </div>
         </div>
 
         <!-- Skills -->
-        <div class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/60 sahara-shadow shrink-0" id="skills">
+        <div class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 border border-outline-variant/60 sahara-shadow shrink-0" id="skills">
           <div class="flex items-center justify-between mb-5">
             <h3 class="font-headline text-2xl text-on-surface">{{ t(ui.skillsTitle) }}</h3>
             <span class="material-symbols-outlined text-primary">memory</span>
@@ -599,7 +599,7 @@ const previousExp = experience.filter(e => !e.featured)
             <h3 class="font-headline text-2xl text-on-surface">{{ t(ui.projects) }}</h3>
             <span class="text-sm font-medium text-on-surface-variant tracking-widest uppercase">2024 — now</span>
           </div>
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <a
               v-for="p in projects"
               :key="p.title"
