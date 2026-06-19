@@ -396,16 +396,7 @@ const previousExp = experience.filter(e => !e.featured)
   <div ref="cvContainer" id="cv-root" class="bg-background text-on-background font-body min-h-screen lg:h-screen w-full lg:overflow-hidden flex flex-col selection:bg-primary-container selection:text-on-primary-container">
 
     <!-- Header -->
-    <header class="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5 border-b border-outline-variant/60 shrink-0 bg-surface-bright z-10 sticky top-0 lg:static">
-      <div class="flex items-center gap-3">
-        <div class="size-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-headline text-lg italic">
-          {{ profile.initials }}
-        </div>
-        <h1 class="font-headline text-xl text-on-surface tracking-tight font-medium">
-          {{ profile.name }}
-        </h1>
-      </div>
-
+    <header class="flex items-center justify-end px-4 sm:px-8 py-4 sm:py-5 border-b border-outline-variant/60 shrink-0 bg-surface-bright z-10 sticky top-0 lg:static">
       <nav class="flex items-center gap-3 sm:gap-6 lg:gap-8">
         <a href="#experience" class="hidden md:inline-block text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navExperience) }}</a>
         <a href="#skills"     class="hidden md:inline-block text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navSkills) }}</a>
