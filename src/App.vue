@@ -5,6 +5,25 @@ import { jsPDF } from 'jspdf'
 const cvContainer = ref(null)
 const isDownloading = ref(false)
 
+// ─── i18n ──────────────────────────────────────────────────
+const lang = ref('en')
+const toggleLang = () => { lang.value = lang.value === 'en' ? 'pt' : 'en' }
+// Resolve a bilingual field { en, pt } to the active language; plain values pass through.
+const t = (v) => (v && typeof v === 'object' && !Array.isArray(v) && 'en' in v) ? v[lang.value] : v
+
+const ui = {
+  navExperience: { en: 'Experience',       pt: 'Experiência' },
+  navSkills:     { en: 'Skills',           pt: 'Habilidades' },
+  resume:        { en: 'Resume',           pt: 'Currículo' },
+  downloading:   { en: 'Downloading...',   pt: 'Baixando...' },
+  skillsTitle:   { en: 'Technical Arsenal',pt: 'Arsenal Técnico' },
+  writing:       { en: 'Writing',          pt: 'Publicações' },
+  projects:      { en: 'Projects',         pt: 'Projetos' },
+  summary:       { en: 'Summary',          pt: 'Resumo' },
+  yo:            { en: 'y.o.',             pt: 'anos' },
+  tech:          { en: 'Tech',             pt: 'Tecnologias' },
+}
+
 const downloadPDF = async () => {
   if (isDownloading.value) return
   isDownloading.value = true
@@ -108,64 +127,65 @@ const downloadPDF = async () => {
     pdf.setFont('helvetica', 'normal')
     pdf.setFontSize(12)
     pdf.setTextColor(accent[0], accent[1], accent[2])
-    pdf.text(enc(profile.title), margin, y)
+    pdf.text(enc(t(profile.title)), margin, y)
     y += 6
 
     pdf.setFontSize(9)
     pdf.setTextColor(muted[0], muted[1], muted[2])
     const contactLine = [
       profile.email.replace('mailto:', ''),
-      `${profile.location} · ${profile.age} y.o.`,
+      `${t(profile.location)} · ${profile.age} ${t(ui.yo)}`,
       profile.linkedin.replace(/^https?:\/\//, ''),
       profile.github.replace(/^https?:\/\//, ''),
     ].join('  |  ')
     para(contactLine, { size: 9, color: muted })
     para(
-      profile.languages.map(l => `${l.name} (${l.level})`).join(' · '),
+      profile.languages.map(l => `${t(l.name)} (${t(l.level)})`).join(' · '),
       { size: 9, color: muted },
     )
 
     // ── Summary ─────────────────────────────────────────────
-    sectionHeading('Summary')
-    para(stripHtml(profile.bio), { size: 10 })
+    sectionHeading(t(ui.summary))
+    para(stripHtml(t(profile.bio)), { size: 10 })
 
     // ── Experience ──────────────────────────────────────────
-    sectionHeading('Experience')
+    sectionHeading(t(ui.navExperience))
     for (const job of experience) {
       ensure(14)
-      titleRow(job.role, job.period)
-      para(job.company, { size: 10, color: accent, style: 'italic' })
-      para(job.desc, { size: 9.5 })
+      titleRow(t(job.role), job.period)
+      para(t(job.company), { size: 10, color: accent, style: 'italic' })
+      para(t(job.desc), { size: 9.5 })
       y += 2
     }
 
     // ── Skills ──────────────────────────────────────────────
-    sectionHeading('Skills')
+    sectionHeading(t(ui.navSkills))
     para(skills.map(s => s.label).join('  ·  '), { size: 10 })
 
     // ── Projects ────────────────────────────────────────────
-    sectionHeading('Projects')
+    sectionHeading(t(ui.projects))
     for (const p of projects) {
       ensure(16)
       titleRow(p.title, p.period)
-      para(p.desc, { size: 9.5 })
-      para(`Tech: ${p.tech.join(', ')}`, { size: 8.5, style: 'italic' })
+      para(t(p.desc), { size: 9.5 })
+      para(`${t(ui.tech)}: ${p.tech.join(', ')}`, { size: 8.5, style: 'italic' })
       const href = p.links?.[0]?.href
       if (href && href !== '#') linkLine(href)
       y += 2
     }
 
     // ── Writing ─────────────────────────────────────────────
-    sectionHeading('Writing')
+    sectionHeading(t(ui.writing))
     for (const a of articles) {
       ensure(12)
-      titleRow(a.title, a.date)
-      para(a.desc, { size: 9 })
+      titleRow(t(a.title), a.date)
+      para(t(a.desc), { size: 9 })
       linkLine(a.href)
       y += 2
     }
 
-    pdf.save(`${profile.name.replace(/\s+/g, '_')}_Resume.pdf`)
+    const fileSuffix = lang.value === 'pt' ? 'Curriculo' : 'Resume'
+    pdf.save(`${profile.name.replace(/\s+/g, '_')}_${fileSuffix}.pdf`)
   } catch (err) {
     console.error('PDF error:', err)
   } finally {
@@ -177,17 +197,20 @@ const downloadPDF = async () => {
 const profile = {
   name:     'Egor Babushkin',
   initials: 'EB',
-  title:    'Rust Backend & Full-Stack Engineer',
-  heroLine: ['Rust Backend', 'Engineer'],
-  bio:      '<strong class="text-on-surface font-medium">7+ years</strong> building <strong class="text-on-surface font-medium">high-performance backends</strong> in Rust and Go — from SSR engines and distributed APIs to <strong class="text-on-surface font-medium">LLM-integrated platforms</strong>. Comfortable across the full stack: Axum · PostgreSQL · React · TypeScript.',
+  title:    { en: 'Rust Backend & Full-Stack Engineer', pt: 'Engenheiro Rust Backend & Full-Stack' },
+  heroLine: { en: ['Rust Backend', 'Engineer'], pt: ['Engenheiro', 'Rust Backend'] },
+  bio: {
+    en: '<strong class="text-on-surface font-medium">7+ years</strong> building <strong class="text-on-surface font-medium">high-performance backends</strong> in Rust and Go — from SSR engines and distributed APIs to <strong class="text-on-surface font-medium">LLM-integrated platforms</strong>. Comfortable across the full stack: Axum · PostgreSQL · React · TypeScript.',
+    pt: '<strong class="text-on-surface font-medium">7+ anos</strong> construindo <strong class="text-on-surface font-medium">backends de alta performance</strong> em Rust e Go — de motores SSR e APIs distribuídas a <strong class="text-on-surface font-medium">plataformas integradas com LLM</strong>. À vontade em toda a stack: Axum · PostgreSQL · React · TypeScript.',
+  },
   // Drop your photo as public/photo.jpg — it will appear automatically
   photo:    '/photo.jpg',
-  location: 'Brazil',
+  location: { en: 'Brazil', pt: 'Brasil' },
   age:      28,
   languages: [
-    { name: 'Russian',    level: 'Native' },
-    { name: 'English',    level: 'A2' },
-    { name: 'Portuguese', level: 'A1' },
+    { name: { en: 'Russian',    pt: 'Russo' },     level: { en: 'Native', pt: 'Nativo' } },
+    { name: { en: 'English',    pt: 'Inglês' },     level: { en: 'A2', pt: 'A2' } },
+    { name: { en: 'Portuguese', pt: 'Português' },  level: { en: 'A1', pt: 'A1' } },
   ],
   email:    'mailto:babushkin.e.ge@gmail.com',
   linkedin: 'https://www.linkedin.com/in/babushkinegor/',
@@ -200,25 +223,34 @@ const profile = {
 const experience = [
   {
     period:   '2024 — now',
-    role:     'Independent Full-Stack Engineer',
-    company:  'Self-directed projects · Brazil',
-    desc:     'Building full-stack products end to end, solo — Rust/Axum backends, Preact frontends, and a custom Rust SSR engine (rusty-ssr, published on crates.io). Designed, built and deployed two marketplace platforms (uCargo, Morada), owning architecture, infrastructure and AI integrations from scratch.',
+    role:     { en: 'Independent Full-Stack Engineer', pt: 'Engenheiro Full-Stack Independente' },
+    company:  { en: 'Self-directed projects · Brazil', pt: 'Projetos próprios · Brasil' },
+    desc: {
+      en: 'Building full-stack products end to end, solo — Rust/Axum backends, Preact frontends, and a custom Rust SSR engine (rusty-ssr, published on crates.io). Designed, built and deployed two marketplace platforms (uCargo, Morada), owning architecture, infrastructure and AI integrations from scratch.',
+      pt: 'Construindo produtos full-stack de ponta a ponta, sozinho — backends em Rust/Axum, frontends em Preact e um motor SSR próprio em Rust (rusty-ssr, publicado no crates.io). Projetei, construí e implantei duas plataformas de marketplace (uCargo, Morada), assumindo arquitetura, infraestrutura e integrações de IA do zero.',
+    },
     bgIcon:   'rocket_launch',
     featured: true,
   },
   {
     period:   '2021 — 2024',
-    role:     'Full Stack Engineer',
+    role:     { en: 'Full Stack Engineer', pt: 'Engenheiro Full Stack' },
     company:  'Dostavista',
-    desc:     'Owned end-to-end features on a high-volume delivery platform: Node.js REST APIs, React UI, PostgreSQL & Redis caching. Built async job pipelines on RabbitMQ and integrated Yandex Maps routing to speed up courier dispatch; ran Nginx config and deployments; polished UX with Framer Motion.',
+    desc: {
+      en: 'Owned end-to-end features on a high-volume delivery platform: Node.js REST APIs, React UI, PostgreSQL & Redis caching. Built async job pipelines on RabbitMQ and integrated Yandex Maps routing to speed up courier dispatch; ran Nginx config and deployments; polished UX with Framer Motion.',
+      pt: 'Responsável por funcionalidades de ponta a ponta em uma plataforma de entregas de alto volume: APIs REST em Node.js, interface em React, cache com PostgreSQL e Redis. Construí pipelines de tarefas assíncronas no RabbitMQ e integrei o roteamento do Yandex Maps para acelerar o despacho de entregadores; configurei o Nginx e os deploys; refinei a UX com Framer Motion.',
+    },
     bgIcon:   'deployed_code',
     featured: true,
   },
   {
     period:   '2018 — 2021',
-    role:     'Frontend Developer',
+    role:     { en: 'Frontend Developer', pt: 'Desenvolvedor Frontend' },
     company:  'Space App',
-    desc:     'Delivered client websites and web apps at a Saratov studio — WordPress themes, PHP integrations, hand-built HTML/CSS layouts. Drove the studio\'s shift to React, unlocking richer, more dynamic projects.',
+    desc: {
+      en: 'Delivered client websites and web apps at a Saratov studio — WordPress themes, PHP integrations, hand-built HTML/CSS layouts. Drove the studio\'s shift to React, unlocking richer, more dynamic projects.',
+      pt: 'Entreguei sites e aplicações web para clientes em um estúdio em Saratov — temas WordPress, integrações em PHP, layouts HTML/CSS feitos à mão. Conduzi a migração do estúdio para React, viabilizando projetos mais ricos e dinâmicos.',
+    },
     bgIcon:   'code_blocks',
     featured: true,
   },
@@ -241,7 +273,10 @@ const projects = [
   {
     title:  'rusty-ssr',
     period: '2026',
-    desc:   'Rust SSR engine that pools V8 isolates per CPU core instead of Node.js processes — dropping memory from ~5 GB to ~200 MB. Three-tier cache (thread-local hot → DashMap LRU cold → V8 render) keyed on URL + data. Benchmarks at 95K RPS / 4.6ms p99 vs ~2K RPS for Next.js.',
+    desc: {
+      en: 'Rust SSR engine that pools V8 isolates per CPU core instead of Node.js processes — dropping memory from ~5 GB to ~200 MB. Three-tier cache (thread-local hot → DashMap LRU cold → V8 render) keyed on URL + data. Benchmarks at 95K RPS / 4.6ms p99 vs ~2K RPS for Next.js.',
+      pt: 'Motor SSR em Rust que agrupa isolates do V8 por núcleo de CPU em vez de processos Node.js — reduzindo a memória de ~5 GB para ~200 MB. Cache de três níveis (hot thread-local → cold DashMap LRU → render V8) indexado por URL + dados. Benchmarks de 95K RPS / 4,6ms p99 contra ~2K RPS do Next.js.',
+    },
     tech:   ['Rust', 'V8', 'SSR', 'Axum', 'DashMap'],
     links:  [
       { label: 'crates.io', href: 'https://crates.io/crates/rusty-ssr' },
@@ -251,7 +286,10 @@ const projects = [
   {
     title:  'Morada',
     period: '2024 — now',
-    desc:   'Full-stack real-estate marketplace for the Brazilian market. Preact + Vite frontend with Tauri desktop shell; Rust / Axum backend on PostgreSQL with Protobuf API. SSR powered by rusty-ssr; mimalloc cuts RSS ~20%; realtime notifications via WebSocket broker.',
+    desc: {
+      en: 'Full-stack real-estate marketplace for the Brazilian market. Preact + Vite frontend with Tauri desktop shell; Rust / Axum backend on PostgreSQL with Protobuf API. SSR powered by rusty-ssr; mimalloc cuts RSS ~20%; realtime notifications via WebSocket broker.',
+      pt: 'Marketplace imobiliário full-stack para o mercado brasileiro. Frontend em Preact + Vite com shell desktop em Tauri; backend em Rust / Axum sobre PostgreSQL com API Protobuf. SSR via rusty-ssr; mimalloc reduz o RSS em ~20%; notificações em tempo real via broker WebSocket.',
+    },
     tech:   ['Rust', 'Axum', 'Preact', 'Tauri', 'PostgreSQL', 'Protobuf'],
     links:  [
       { label: 'Live site', href: 'https://morada.200-234-218-78.nip.io/' },
@@ -260,7 +298,10 @@ const projects = [
   {
     title:  'uCargo',
     period: '2024 — now',
-    desc:   'Uber-style cargo & moving marketplace built for the Brazilian market. Three panels — Client, Driver, Loader — with real-time map, booking deck, and Telegram auth. Rust / Axum + Preact + rusty-ssr stack; shared Protobuf API layer.',
+    desc: {
+      en: 'Uber-style cargo & moving marketplace built for the Brazilian market. Three panels — Client, Driver, Loader — with real-time map, booking deck, and Telegram auth. Rust / Axum + Preact + rusty-ssr stack; shared Protobuf API layer.',
+      pt: 'Marketplace de fretes e mudanças no estilo Uber, feito para o mercado brasileiro. Três painéis — Cliente, Motorista, Carregador — com mapa em tempo real, painel de reservas e autenticação via Telegram. Stack Rust / Axum + Preact + rusty-ssr; camada de API Protobuf compartilhada.',
+    },
     tech:   ['Rust', 'Axum', 'Preact', 'PostgreSQL', 'Telegram API'],
     links:  [
       { label: 'Live site', href: 'https://ucargo.com.br' },
@@ -269,7 +310,10 @@ const projects = [
   {
     title:  'ecoChatServer',
     period: '2024 — 2026',
-    desc:   'Go backend for AI-driven Instagram DM automation. Director (Level-2 LLM) oversees the primary agent via directives; Hebbian graph builds associative concept memory with decay/reinforcement; PromptOptimizer auto-improves prompts and rolls back on regression. Multi-provider LLM (Claude / GPT-4 / Gemini).',
+    desc: {
+      en: 'Go backend for AI-driven Instagram DM automation. Director (Level-2 LLM) oversees the primary agent via directives; Hebbian graph builds associative concept memory with decay/reinforcement; PromptOptimizer auto-improves prompts and rolls back on regression. Multi-provider LLM (Claude / GPT-4 / Gemini).',
+      pt: 'Backend em Go para automação de DMs do Instagram com IA. Um Director (LLM de nível 2) supervisiona o agente principal via diretrizes; um grafo Hebbiano constrói memória associativa de conceitos com decaimento/reforço; o PromptOptimizer melhora os prompts automaticamente e reverte em caso de regressão. LLM multi-provedor (Claude / GPT-4 / Gemini).',
+    },
     tech:   ['Go', 'PostgreSQL', 'WebSocket', 'LLM', 'Hebbian'],
     links:  [
       { label: 'GitHub', href: 'https://github.com/babasha/ecoChatServer' },
@@ -278,7 +322,10 @@ const projects = [
   {
     title:  'adk-go_openai',
     period: '2025 — now',
-    desc:   'Fork of Google ADK for Go with an OpenAI-compatible adapter. Multi-turn tool calling, SSE streaming, exponential backoff — swap between GPT-4, local Qwen via vLLM, Mistral or Gemma with zero code changes. 146 tests, 74.8% coverage.',
+    desc: {
+      en: 'Fork of Google ADK for Go with an OpenAI-compatible adapter. Multi-turn tool calling, SSE streaming, exponential backoff — swap between GPT-4, local Qwen via vLLM, Mistral or Gemma with zero code changes. 146 tests, 74.8% coverage.',
+      pt: 'Fork do Google ADK para Go com um adaptador compatível com OpenAI. Tool calling multi-turno, streaming SSE, backoff exponencial — alterne entre GPT-4, Qwen local via vLLM, Mistral ou Gemma sem mudar uma linha de código. 146 testes, 74,8% de cobertura.',
+    },
     tech:   ['Go', 'LLM', 'OpenAI API', 'SSE', 'Docker', 'vLLM'],
     links:  [
       { label: 'GitHub', href: 'https://github.com/babasha/adk-go_openai' },
@@ -287,7 +334,10 @@ const projects = [
   {
     title:  'enddel',
     period: '2024 — now',
-    desc:   'Delivery & logistics management platform with Android app via Capacitor. React 18 + TS: vendor analytics, cluster management, stock monitoring, order/refund flows. Real-time courier tracking via Socket.io + Leaflet; i18n; Node.js + Prisma backend.',
+    desc: {
+      en: 'Delivery & logistics management platform with Android app via Capacitor. React 18 + TS: vendor analytics, cluster management, stock monitoring, order/refund flows. Real-time courier tracking via Socket.io + Leaflet; i18n; Node.js + Prisma backend.',
+      pt: 'Plataforma de gestão de entregas e logística com app Android via Capacitor. React 18 + TS: analytics de vendedores, gestão de clusters, monitoramento de estoque, fluxos de pedido/reembolso. Rastreamento de entregadores em tempo real via Socket.io + Leaflet; i18n; backend em Node.js + Prisma.',
+    },
     tech:   ['React', 'TypeScript', 'Node.js', 'Prisma', 'Socket.io', 'Capacitor'],
     links:  [
       { label: 'private', href: '#' },
@@ -297,30 +347,42 @@ const projects = [
 
 const articles = [
   {
-    title: 'SSR on Rust: 95K RPS on Apple M4',
+    title: { en: 'SSR on Rust: 95K RPS on Apple M4', pt: 'SSR em Rust: 95K RPS no Apple M4' },
     date:  '2025',
-    desc:  'Architecture of rusty-ssr: V8 isolate pooling, thread pinning to CPU cores, two-tier DashMap cache. Drops infra costs dramatically vs Node.js SSR.',
+    desc: {
+      en: 'Architecture of rusty-ssr: V8 isolate pooling, thread pinning to CPU cores, two-tier DashMap cache. Drops infra costs dramatically vs Node.js SSR.',
+      pt: 'Arquitetura do rusty-ssr: pooling de isolates do V8, fixação de threads aos núcleos da CPU, cache DashMap de dois níveis. Reduz drasticamente os custos de infraestrutura frente ao SSR em Node.js.',
+    },
     tags:  ['Rust', 'V8', 'SSR', 'Performance'],
     href:  'https://habr.com/ru/articles/975340/',
   },
   {
-    title: 'IoT Startup Solo in Brazil, on Rust',
+    title: { en: 'IoT Startup Solo in Brazil, on Rust', pt: 'Startup de IoT sozinho no Brasil, em Rust' },
     date:  '2025',
-    desc:  'Full stack from ESP32-C3 firmware (Embassy) to mobile app and AI customer support. Mesh via ESP-NOW, ECDH auth, 5-month battery per node.',
+    desc: {
+      en: 'Full stack from ESP32-C3 firmware (Embassy) to mobile app and AI customer support. Mesh via ESP-NOW, ECDH auth, 5-month battery per node.',
+      pt: 'Full stack do firmware do ESP32-C3 (Embassy) ao app mobile e suporte ao cliente com IA. Mesh via ESP-NOW, autenticação ECDH, 5 meses de bateria por nó.',
+    },
     tags:  ['Rust', 'ESP32', 'IoT', 'AI'],
     href:  'https://habr.com/ru/articles/1010342/',
   },
   {
-    title: 'Vulkan Renderer for S.T.A.L.K.E.R. OGSR',
+    title: { en: 'Vulkan Renderer for S.T.A.L.K.E.R. OGSR', pt: 'Renderizador Vulkan para S.T.A.L.K.E.R. OGSR' },
     date:  '2025',
-    desc:  'GPU-driven vegetation, compute-shader frustum culling, persistent ring allocator to eliminate CPU–GPU stalls. Modern foundation for X-Ray modding.',
+    desc: {
+      en: 'GPU-driven vegetation, compute-shader frustum culling, persistent ring allocator to eliminate CPU–GPU stalls. Modern foundation for X-Ray modding.',
+      pt: 'Vegetação processada na GPU, frustum culling em compute shader, alocador em anel persistente para eliminar travas CPU–GPU. Base moderna para modding da X-Ray.',
+    },
     tags:  ['C++', 'Vulkan', 'Graphics'],
     href:  'https://habr.com/ru/articles/1044264/',
   },
   {
-    title: 'Virtual Shadow Maps for S.T.A.L.K.E.R.',
+    title: { en: 'Virtual Shadow Maps for S.T.A.L.K.E.R.', pt: 'Virtual Shadow Maps para S.T.A.L.K.E.R.' },
     date:  '2026',
-    desc:  'Granular 128×128 page invalidation across 6 mip levels — smooth moving sun at +0.5ms instead of +6ms with naive cascades.',
+    desc: {
+      en: 'Granular 128×128 page invalidation across 6 mip levels — smooth moving sun at +0.5ms instead of +6ms with naive cascades.',
+      pt: 'Invalidação granular de páginas 128×128 em 6 níveis de mip — sol em movimento suave a +0,5ms em vez de +6ms com cascatas ingênuas.',
+    },
     tags:  ['Vulkan', 'HLSL', 'Shadow Maps'],
     href:  'https://habr.com/ru/articles/1049338/',
   },
@@ -345,8 +407,20 @@ const previousExp = experience.filter(e => !e.featured)
       </div>
 
       <nav class="flex items-center gap-8">
-        <a href="#experience" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Experience</a>
-        <a href="#skills"     class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Skills</a>
+        <a href="#experience" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navExperience) }}</a>
+        <a href="#skills"     class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">{{ t(ui.navSkills) }}</a>
+
+        <!-- Language toggle -->
+        <button
+           @click="toggleLang"
+           class="flex items-center gap-1.5 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors"
+           :title="lang === 'en' ? 'Mudar para Português' : 'Switch to English'">
+          <span class="material-symbols-outlined text-[18px]">translate</span>
+          <span :class="lang === 'en' ? 'text-primary' : ''">EN</span>
+          <span class="text-outline-variant">/</span>
+          <span :class="lang === 'pt' ? 'text-primary' : ''">PT</span>
+        </button>
+
         <button
            @click="downloadPDF"
            :disabled="isDownloading"
@@ -354,7 +428,7 @@ const previousExp = experience.filter(e => !e.featured)
           <span class="material-symbols-outlined text-[18px]" :class="{ 'animate-spin': isDownloading }">
             {{ isDownloading ? 'sync' : 'download' }}
           </span>
-          {{ isDownloading ? 'Downloading...' : 'Resume' }}
+          {{ isDownloading ? t(ui.downloading) : t(ui.resume) }}
         </button>
       </nav>
     </header>
@@ -379,27 +453,27 @@ const previousExp = experience.filter(e => !e.featured)
           </div>
           <div class="mt-auto p-8 relative z-20">
             <h2 class="font-headline text-5xl text-white font-medium leading-tight tracking-tight">
-              {{ profile.heroLine[0] }}<br/>
-              <span class="italic text-primary-fixed">{{ profile.heroLine[1] }}</span>
+              {{ t(profile.heroLine)[0] }}<br/>
+              <span class="italic text-primary-fixed">{{ t(profile.heroLine)[1] }}</span>
             </h2>
           </div>
         </div>
 
         <!-- Bio card -->
         <div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/60 sahara-shadow shrink-0">
-          <p class="text-on-surface-variant text-base leading-relaxed" v-html="profile.bio"></p>
+          <p class="text-on-surface-variant text-base leading-relaxed" v-html="t(profile.bio)"></p>
 
           <!-- Personal info -->
           <div class="mt-4 flex flex-col gap-1.5">
             <div class="flex items-center gap-2 text-sm text-on-surface-variant">
               <span class="material-symbols-outlined text-[16px] text-primary">location_on</span>
-              {{ profile.location }} · {{ profile.age }} y.o.
+              {{ t(profile.location) }} · {{ profile.age }} {{ t(ui.yo) }}
             </div>
             <div class="flex items-center gap-2 text-sm text-on-surface-variant">
               <span class="material-symbols-outlined text-[16px] text-primary">translate</span>
-              <span v-for="(lang, i) in profile.languages" :key="lang.name">
-                {{ lang.name }}
-                <span class="text-xs text-on-surface-variant/60">{{ lang.level }}</span>
+              <span v-for="(lng, i) in profile.languages" :key="i">
+                {{ t(lng.name) }}
+                <span class="text-xs text-on-surface-variant/60">{{ t(lng.level) }}</span>
                 <span v-if="i < profile.languages.length - 1" class="mx-1 text-outline-variant">·</span>
               </span>
             </div>
@@ -458,7 +532,7 @@ const previousExp = experience.filter(e => !e.featured)
         <div class="grid grid-cols-2 gap-6 shrink-0">
           <div
             v-for="item in featuredExp"
-            :key="item.role"
+            :key="item.period"
             class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/60 sahara-shadow flex flex-col relative overflow-hidden group"
           >
             <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 transition-transform group-hover:scale-110 pointer-events-none">
@@ -470,16 +544,16 @@ const previousExp = experience.filter(e => !e.featured)
               </div>
               <div class="text-sm font-medium text-tertiary tracking-widest uppercase">{{ item.period }}</div>
             </div>
-            <h3 class="font-headline text-3xl text-on-surface mb-2">{{ item.role }}</h3>
-            <h4 class="text-on-surface-variant font-medium text-lg mb-4">{{ item.company }}</h4>
-            <p class="text-on-surface-variant text-sm leading-relaxed mt-auto max-w-[85%]">{{ item.desc }}</p>
+            <h3 class="font-headline text-3xl text-on-surface mb-2">{{ t(item.role) }}</h3>
+            <h4 class="text-on-surface-variant font-medium text-lg mb-4">{{ t(item.company) }}</h4>
+            <p class="text-on-surface-variant text-sm leading-relaxed mt-auto max-w-[85%]">{{ t(item.desc) }}</p>
           </div>
         </div>
 
         <!-- Skills -->
         <div class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/60 sahara-shadow shrink-0" id="skills">
           <div class="flex items-center justify-between mb-5">
-            <h3 class="font-headline text-2xl text-on-surface">Technical Arsenal</h3>
+            <h3 class="font-headline text-2xl text-on-surface">{{ t(ui.skillsTitle) }}</h3>
             <span class="material-symbols-outlined text-primary">memory</span>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -497,7 +571,7 @@ const previousExp = experience.filter(e => !e.featured)
         <div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant/60 sahara-shadow shrink-0">
           <div class="flex items-center gap-3 mb-4">
             <span class="material-symbols-outlined text-primary text-[20px]">edit_note</span>
-            <h3 class="font-headline text-2xl text-on-surface">Writing</h3>
+            <h3 class="font-headline text-2xl text-on-surface">{{ t(ui.writing) }}</h3>
             <span class="ml-auto text-xs font-medium text-on-surface-variant/50 tracking-widest uppercase">Habr</span>
           </div>
           <div class="flex flex-col gap-1">
@@ -506,10 +580,10 @@ const previousExp = experience.filter(e => !e.featured)
                class="group flex items-start gap-3 p-3 rounded-lg hover:bg-surface-container transition-colors">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-on-surface text-sm font-medium group-hover:text-primary transition-colors">{{ art.title }}</span>
+                  <span class="text-on-surface text-sm font-medium group-hover:text-primary transition-colors">{{ t(art.title) }}</span>
                   <span class="material-symbols-outlined text-[13px] text-outline-variant group-hover:text-primary transition-colors shrink-0">arrow_outward</span>
                 </div>
-                <p class="text-on-surface-variant text-xs mt-0.5 leading-relaxed">{{ art.desc }}</p>
+                <p class="text-on-surface-variant text-xs mt-0.5 leading-relaxed">{{ t(art.desc) }}</p>
                 <div class="flex gap-1 mt-1.5 flex-wrap">
                   <span v-for="tag in art.tags" :key="tag"
                     class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant/70 border border-outline-variant/30">{{ tag }}</span>
@@ -522,7 +596,7 @@ const previousExp = experience.filter(e => !e.featured)
         <!-- Pet Projects -->
         <div class="shrink-0">
           <div class="flex items-center gap-3 mb-4 px-1">
-            <h3 class="font-headline text-2xl text-on-surface">Projects</h3>
+            <h3 class="font-headline text-2xl text-on-surface">{{ t(ui.projects) }}</h3>
             <span class="text-sm font-medium text-on-surface-variant tracking-widest uppercase">2024 — now</span>
           </div>
           <div class="grid grid-cols-2 gap-6">
@@ -541,11 +615,11 @@ const previousExp = experience.filter(e => !e.featured)
                 </div>
                 <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[20px] mt-1">arrow_outward</span>
               </div>
-              <p class="text-on-surface-variant text-sm leading-relaxed">{{ p.desc }}</p>
+              <p class="text-on-surface-variant text-sm leading-relaxed">{{ t(p.desc) }}</p>
               <div class="flex flex-wrap gap-2 mt-auto">
-                <span v-for="t in p.tech" :key="t"
+                <span v-for="tch in p.tech" :key="tch"
                   class="px-2 py-0.5 rounded text-xs font-mono text-on-surface-variant border border-outline-variant/40 bg-surface-container">
-                  {{ t }}
+                  {{ tch }}
                 </span>
               </div>
               <div class="flex gap-3 pt-1 border-t border-outline-variant/40">
